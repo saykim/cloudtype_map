@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotto Number Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: #ffffff;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+            font-weight: 700;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        #results h2 {
+            margin: 15px 0;
+            font-size: 22px;
+            color: #34495e;
+        }
+        #results p {
+            font-size: 20px;
+            color: #333;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 5px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        #frequencyChart {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lotto Number Generator</h1>
+        <button id="generateButton">Generate Numbers</button>
+        <div id="results">
+            <h2>Generated Numbers</h2>
+            <div id="mostFrequentSet"></div>
+            <div id="leastFrequentSet"></div>
+            <canvas id="frequencyChart"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.getElementById('generateButton').addEventListener('click', generateLottoNumbers);
+
+        let chart;
+
+        function generateLottoNumbers() {
+            const frequency = Array(46).fill(0); // 로또 번호는 1부터 45까지
+
+            for (let i = 0; i < 100; i++) {
+                const numbers = drawLottoNumbers();
+                numbers.forEach(num => frequency[num]++);
+            }
+
+            const mostFrequent = findMostFrequent(frequency);
+            const leastFrequent = findLeastFrequent(frequency);
+
+            const mostFrequentSet = generateLottoSet(mostFrequent);
+            const leastFrequentSet = generateLottoSet(leastFrequent);
+
+            displayResults(mostFrequentSet, leastFrequentSet);
+            displayChart(frequency, mostFrequent, leastFrequent);
+        }
+
+        function drawLottoNumbers() {
+            const numbers = [];
+            while (numbers.length < 6) {
+                const num = Math.floor(Math.random() * 45) + 1;
+                if (!numbers.includes(num)) {
+                    numbers.push(num);
+                }
+            }
+            return numbers;
+        }
+
+        function findMostFrequent(frequency) {
+            return frequency
+                .map((count, num) => ({ num, count }))
+                .filter(item => item.num !== 0) // 0인 항목 제거
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3) // 상위 3개 선택
+                .map(item => item.num);
+        }
+
+        function findLeastFrequent(frequency) {
+            return frequency
+                .map((count, num) => ({ num, count }))
+                .filter(item => item.num !== 0) // 0인 항목 제거
+                .sort((a, b) => a.count - b.count)
+                .slice(0, 3) // 하위 3개 선택
+                .map(item => item.num);
+        }
+
+        function generateLottoSet(baseNumbers) {
+            const numbers = new Set(baseNumbers);
+            while (numbers.size < 6) {
+                const num = Math.floor(Math.random() * 45) + 1;
+                numbers.add(num);
+            }
+            return Array.from(numbers).sort((a, b) => a - b); // 정렬 추가
+        }
+
+        function displayResults(mostFrequentSet, leastFrequentSet) {
+            const mostFrequentContainer = document.getElementById('mostFrequentSet');
+            const leastFrequentContainer = document.getElementById('leastFrequentSet');
+
+            mostFrequentContainer.innerHTML = '';
+            leastFrequentContainer.innerHTML = '';
+
+            mostFrequentSet.forEach((num, index) => {
+                const numberElement = document.createElement('p');
+                numberElement.textContent = num;
+                numberElement.style.animationDelay = `${index * 0.1}s`;
+                mostFrequentContainer.appendChild(numberElement);
+            });
+
+            leastFrequentSet.forEach((num, index) => {
+                const numberElement = document.createElement('p');
+                numberElement.textContent = num;
+                numberElement.style.animationDelay = `${index * 0.1}s`;
+                leastFrequentContainer.appendChild(numberElement);
+            });
+        }
+
+        function displayChart(frequency, mostFrequent, leastFrequent) {
+            const ctx = document.getElementById('frequencyChart').getContext('2d');
+            const labels = Array.from({ length: 45 }, (_, i) => i + 1);
+            const backgroundColors = labels.map(label => {
+                if (mostFrequent.includes(label)) {
+                    return 'rgba(255, 99, 132, 0.2)'; // 빨간색
+                } else if (leastFrequent.includes(label)) {
+                    return 'rgba(54, 162, 235, 0.2)'; // 파란색
+                } else {
+                    return 'rgba(75, 192, 192, 0.2)'; // 기본 색상
+                }
+            });
+            const borderColors = labels.map(label => {
+                if (mostFrequent.includes(label)) {
+                    return 'rgba(255, 99, 132, 1)'; // 빨간색
+                } else if (leastFrequent.includes(label)) {
+                    return 'rgba(54, 162, 235, 1)'; // 파란색
+                } else {
+                    return 'rgba(75, 192, 192, 1)'; // 기본 색상
+                }
+            });
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Number Frequency',
+                    data: frequency.slice(1),
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            };
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, config);
+        }
+    </script>
+</body>
+</html>
