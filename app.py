@@ -35,7 +35,24 @@ def generate_numbers():
         'mostFrequent': most_frequent,
         'leastFrequent': least_frequent
     }
+
+    # Save the generated numbers to the database
+    conn = sqlite3.connect('lotto.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO lotto (numbers) VALUES (?)", (','.join(map(str, generate_lotto_numbers())),))
+    conn.commit()
+    conn.close()
+
     return jsonify(data)
+
+@app.route('/history', methods=['GET'])
+def get_history():
+    conn = sqlite3.connect('lotto.db')
+    c = conn.cursor()
+    c.execute("SELECT numbers FROM lotto")
+    rows = c.fetchall()
+    conn.close()
+    return jsonify(rows)
 
 def generate_lotto_numbers():
     return random.sample(range(1, 46), 6)
