@@ -79,23 +79,107 @@
         <button id="generateButton">Generate Numbers</button>
         <div id="results">
             <h2>Generated Numbers</h2>
-            <div id="numberList"></div>
+            <div id="mostFrequentSet"></div>
+            <div id="leastFrequentSet"></div>
+            <canvas id="frequencyChart"></canvas>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.getElementById('generateButton').addEventListener('click', generateLottoNumbers);
 
+        let chart;
+
         async function generateLottoNumbers() {
             const response = await fetch('/generate');
             const data = await response.json();
-            const numberList = document.getElementById('numberList');
-            numberList.innerHTML = '';
-            data.numbers.forEach(num => {
-                const p = document.createElement('p');
-                p.textContent = num;
-                numberList.appendChild(p);
+            
+            const mostFrequentSet = generateLottoSet(data.mostFrequent);
+            const leastFrequentSet = generateLottoSet(data.leastFrequent);
+
+            displayResults(mostFrequentSet, leastFrequentSet);
+            displayChart(data.frequency, data.mostFrequent, data.leastFrequent);
+        }
+
+        function generateLottoSet(baseNumbers) {
+            const numbers = new Set(baseNumbers);
+            while (numbers.size < 6) {
+                const num = Math.floor(Math.random() * 45) + 1;
+                numbers.add(num);
+            }
+            return Array.from(numbers).sort((a, b) => a - b);
+        }
+
+        function displayResults(mostFrequentSet, leastFrequentSet) {
+            const mostFrequentContainer = document.getElementById('mostFrequentSet');
+            const leastFrequentContainer = document.getElementById('leastFrequentSet');
+
+            mostFrequentContainer.innerHTML = '';
+            leastFrequentContainer.innerHTML = '';
+
+            mostFrequentSet.forEach((num, index) => {
+                const numberElement = document.createElement('p');
+                numberElement.textContent = num;
+                numberElement.style.animationDelay = `${index * 0.1}s`;
+                mostFrequentContainer.appendChild(numberElement);
             });
+
+            leastFrequentSet.forEach((num, index) => {
+                const numberElement = document.createElement('p');
+                numberElement.textContent = num;
+                numberElement.style.animationDelay = `${index * 0.1}s`;
+                leastFrequentContainer.appendChild(numberElement);
+            });
+        }
+
+        function displayChart(frequency, mostFrequent, leastFrequent) {
+            const ctx = document.getElementById('frequencyChart').getContext('2d');
+            const labels = Array.from({ length: 45 }, (_, i) => i + 1);
+            const backgroundColors = labels.map(label => {
+                if (mostFrequent.includes(label)) {
+                    return 'rgba(255, 99, 132, 0.2)';
+                } else if (leastFrequent.includes(label)) {
+                    return 'rgba(54, 162, 235, 0.2)';
+                } else {
+                    return 'rgba(75, 192, 192, 0.2)';
+                }
+            });
+            const borderColors = labels.map(label => {
+                if (mostFrequent.includes(label)) {
+                    return 'rgba(255, 99, 132, 1)';
+                } else if (leastFrequent.includes(label)) {
+                    return 'rgba(54, 162, 235, 1)';
+                } else {
+                    return 'rgba(75, 192, 192, 1)';
+                }
+            });
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Number Frequency',
+                    data: frequency.slice(1),
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            };
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, config);
         }
     </script>
 </body>
