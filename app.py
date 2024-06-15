@@ -4,7 +4,6 @@ import random
 
 app = Flask(__name__)
 
-# 데이터베이스 초기화 함수
 def init_db():
     conn = sqlite3.connect('lotto.db')
     c = conn.cursor()
@@ -14,7 +13,7 @@ def init_db():
 
 @app.before_first_request
 def before_first_request():
-    init_db()  # 데이터베이스 초기화
+    init_db()
 
 @app.route('/')
 def index():
@@ -22,22 +21,21 @@ def index():
 
 @app.route('/generate', methods=['GET'])
 def generate_numbers():
-    numbers = generate_lotto_numbers()
-    conn = sqlite3.connect('lotto.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO lotto (numbers) VALUES (?)", (','.join(map(str, numbers)),))
-    conn.commit()
-    conn.close()
-    return jsonify({'numbers': numbers})
+    frequency = [0] * 46
+    for _ in range(100):
+        numbers = random.sample(range(1, 46), 6)
+        for number in numbers:
+            frequency[number] += 1
 
-@app.route('/history', methods=['GET'])
-def get_history():
-    conn = sqlite3.connect('lotto.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM lotto")
-    rows = c.fetchall()
-    conn.close()
-    return jsonify(rows)
+    most_frequent = sorted(range(1, 46), key=lambda i: -frequency[i])[:3]
+    least_frequent = sorted(range(1, 46), key=lambda i: frequency[i] if frequency[i] != 0 else float('inf'))[:3]
+
+    data = {
+        'frequency': frequency,
+        'mostFrequent': most_frequent,
+        'leastFrequent': least_frequent
+    }
+    return jsonify(data)
 
 def generate_lotto_numbers():
     return random.sample(range(1, 46), 6)
