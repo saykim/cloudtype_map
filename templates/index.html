@@ -82,6 +82,7 @@
             <h2>Generated Numbers</h2>
             <div id="numberList"></div>
             <div id="historyList"></div>
+            <canvas id="frequencyChart"></canvas>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -125,7 +126,6 @@
 
         function displayResults(mostFrequentSet, leastFrequentSet) {
             const mostFrequentContainer = document.getElementById('numberList');
-
             mostFrequentContainer.innerHTML = '';
 
             mostFrequentSet.forEach((num, index) => {
