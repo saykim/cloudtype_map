@@ -1,14 +1,13 @@
-version: '1.0'
-services:
-  web:
-    build:
-      context: .
-    command: gunicorn -b 0.0.0.0:8000 app:app
-    ports:
-      - "8000:8000"
-    resources:
-      limits:
-        cpus: "0.5"
-        memory: "512M"
-    environment:
-      - FLASK_ENV=production
+name: cloudtype-map
+app: python@3.9
+options:
+  env:
+    - name: FLASK_ENV
+      value: production
+  ports: 5000
+  start: gunicorn -b 0.0.0.0:5000 app:app
+  buildenv: []
+context:
+  git:
+    url: https://github.com/saykim/cloudtype_map.git
+    branch: main
