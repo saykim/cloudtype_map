@@ -77,18 +77,16 @@
     <div class="container">
         <h1>Lotto Number Generator</h1>
         <button id="generateButton">Generate Numbers</button>
-        <button id="historyButton">Show History</button>
         <div id="results">
             <h2>Generated Numbers</h2>
-            <div id="numberList"></div>
-            <div id="historyList"></div>
+            <div id="mostFrequentSet"></div>
+            <div id="leastFrequentSet"></div>
             <canvas id="frequencyChart"></canvas>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.getElementById('generateButton').addEventListener('click', generateLottoNumbers);
-        document.getElementById('historyButton').addEventListener('click', showHistory);
 
         let chart;
 
@@ -103,18 +101,6 @@
             displayChart(data.frequency, data.mostFrequent, data.leastFrequent);
         }
 
-        async function showHistory() {
-            const response = await fetch('/history');
-            const data = await response.json();
-            const historyList = document.getElementById('historyList');
-            historyList.innerHTML = '<h2>History</h2>';
-            data.forEach(row => {
-                const p = document.createElement('p');
-                p.textContent = row[0];
-                historyList.appendChild(p);
-            });
-        }
-
         function generateLottoSet(baseNumbers) {
             const numbers = new Set(baseNumbers);
             while (numbers.size < 6) {
@@ -125,8 +111,11 @@
         }
 
         function displayResults(mostFrequentSet, leastFrequentSet) {
-            const mostFrequentContainer = document.getElementById('numberList');
+            const mostFrequentContainer = document.getElementById('mostFrequentSet');
+            const leastFrequentContainer = document.getElementById('leastFrequentSet');
+
             mostFrequentContainer.innerHTML = '';
+            leastFrequentContainer.innerHTML = '';
 
             mostFrequentSet.forEach((num, index) => {
                 const numberElement = document.createElement('p');
@@ -139,7 +128,7 @@
                 const numberElement = document.createElement('p');
                 numberElement.textContent = num;
                 numberElement.style.animationDelay = `${index * 0.1}s`;
-                mostFrequentContainer.appendChild(numberElement);
+                leastFrequentContainer.appendChild(numberElement);
             });
         }
 
