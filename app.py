@@ -12,6 +12,10 @@ def init_db():
     conn.commit()
     conn.close()
 
+@app.before_first_request
+def before_first_request():
+    init_db()  # 데이터베이스 초기화
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -39,5 +43,4 @@ def generate_lotto_numbers():
     return random.sample(range(1, 46), 6)
 
 if __name__ == '__main__':
-    init_db()  # 데이터베이스 초기화
     app.run(debug=True, host='0.0.0.0', port=8000)
